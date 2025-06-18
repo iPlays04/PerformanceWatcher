@@ -134,6 +134,9 @@ root.geometry(f"{window_size[0]}x{window_size[1]}")
 root.resizable(False,False)
 root.attributes("-topmost", True)
 
+root.iconphoto(False, tk.PhotoImage(file='.\\icon.png'))
+
+
 canvas = tk.Canvas(root, bg=bgcolor, width=window_size[0], height=window_size[1])
 canvas.pack()
 
