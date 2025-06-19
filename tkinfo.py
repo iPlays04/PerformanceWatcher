@@ -1,4 +1,4 @@
-import psutil
+import psutil,os
 import tkinter as tk
 import wmi
 
@@ -17,15 +17,8 @@ def addgraph(canvas, x, y, percent, isTemp, name):
     if(isTemp):
         percent = percent / 120
         if(percent>1):percent=1
-        print(percent)
+        #print(percent)
     
-
-    # Outline
-    canvas.create_oval(x, y, x+100, y+100, fill=seccolor, outline='')
-
-    # Hintergrund
-    canvas.create_oval(x+5, y+5, x+95, y+95, fill=pricolor, outline='')
-
     # Genutze Leistung
     if not isTemp:
         redness = hex(int(255*percent))[2:].zfill(2)
@@ -33,11 +26,21 @@ def addgraph(canvas, x, y, percent, isTemp, name):
     else:
         redness = hex(int(255 * max(0, (percent - 0.4) / 0.6)))[2:].zfill(2)
         greenness = hex(int(255 * (1 - max(0, (percent - 0.4) / 0.6))))[2:].zfill(2)
-    canvas.create_arc(x+5, y+5, x+95, y+95, start=0, extent=percent*359.99, fill=f"#{redness}{greenness}00", outline='')
+
+    # Outline
+    canvas.create_oval(x, y, x+100, y+100, fill=seccolor, outline='')
+
+    # Hintergrund
+    canvas.create_oval(x+5, y+5, x+95, y+95, fill=f"#{redness}{greenness}00", outline='')
+
+    #abdeckung
+    canvas.create_arc(x+4, y+4, x+96, y+96, start=250, extent=359.99-(percent*319.99), fill=pricolor, outline='')
     #print(f"current colour:#{redness}{greenness}00") #Testprint zur ausgabe des momentanen Farbwertes
 
     # Mittelkreis
     canvas.create_oval(x+35, y+35, x+65, y+65, fill=seccolor, outline='')
+    canvas.create_arc(x+4, y+4, x+96, y+96, start=250, extent=40, fill=seccolor, outline='')
+
     if(not isTemp):
         #Anzeige
         canvas.create_text(x+50, y+50, text=f"{int(percent*100)}%", fill=bgcolor, font=(globalfont, 8))
@@ -59,7 +62,7 @@ def get_cpu_temp():
                 return sensor.Value
     except Exception as e:
         #print(f"CPU Temp error (OHM): {e}")
-        print()
+        pass
     return None
 
 def get_gpu_usage():
@@ -74,7 +77,7 @@ def get_gpu_usage():
                 return sensor.Value / 100
     except Exception as e:
         #print(f"GPU usage error: {e}")
-        print()
+        pass
     return None
 
 def get_gpu_temperature():
@@ -86,7 +89,7 @@ def get_gpu_temperature():
                 return sensor.Value
     except Exception as e:
         #print(f"GPU temp error: {e}")
-        print()
+        pass
     return None
 
 def get_memory_usage():
@@ -125,6 +128,9 @@ def update_graph():
     ram_percent = get_memory_usage()
     addgraph(canvas, 220, 0, ram_percent, False, "RAM-Auslastung")
 
+    #Debug
+    #addgraph(canvas, 220, 120, 0, False, "RAM-Auslastung")
+
     root.after(1000, update_graph)  # Aktualisiere alle 1000 ms (1 Sekunde)
 
 # Tkinter initialisieren
@@ -134,7 +140,8 @@ root.geometry(f"{window_size[0]}x{window_size[1]}")
 root.resizable(False,False)
 root.attributes("-topmost", True)
 
-root.iconphoto(False, tk.PhotoImage(file='.\\icon.png'))
+if(os.path.isfile('.\\icon.png')):
+    root.iconphoto(False, tk.PhotoImage(file='.\\icon.png'))
 
 
 canvas = tk.Canvas(root, bg=bgcolor, width=window_size[0], height=window_size[1])
